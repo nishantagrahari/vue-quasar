@@ -10,6 +10,7 @@ import 'vue3-blocks-tree/dist/vue3-blocks-tree.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 
+
 let defaultoptions = {treeName:'blocks-tree'}
 
 

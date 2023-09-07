@@ -6,7 +6,9 @@
       <!-- <ExpandableTable /> -->
       <!-- <TierSummary /> -->
       <!-- <OrgTable /> -->
-      <DynamicTree />
+      <!-- <DynamicTree /> -->
+      <ChartTable1 />
+      <!-- <ChartTable2 /> -->
       <!-- <Accounttable /> -->
     <!-- </q-page-container>
   </q-layout> -->
@@ -19,7 +21,10 @@ import { ref } from 'vue'
 // import ExpandableTable from './components/ExpandableTable.vue'
 // import TierSummary from './components/TierSummary.vue'
 // import OrgTable from './components/OrgTable.vue'
-import DynamicTree from './components/DynamicTree.vue'
+//import DynamicTree from './components/DynamicTree.vue'
+import ChartTable1 from './components/ChartTable1.vue'
+// import ChartTable2 from './components/ChartTable2.vue'
+
 
 
 export default {
@@ -31,7 +36,9 @@ export default {
     // TableComponent
     // TierSummary
     // OrgTable    
-    DynamicTree
+    // DynamicTree
+    // ChartTable2
+    ChartTable1
   },
 
   setup () {

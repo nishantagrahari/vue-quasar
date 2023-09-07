@@ -140,7 +140,7 @@ const rows = [
 export default {
     props:['orgName'],
     components:{PhysicianTable},
-
+  
     
     setup() {      
 
