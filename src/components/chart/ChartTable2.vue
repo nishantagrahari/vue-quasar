@@ -1,7 +1,5 @@
-<template>
-        
-        <canvas ref="mychart"></canvas>
-    
+<template>        
+        <canvas ref="mychart"></canvas>    
 </template>
 
 <script>
@@ -87,16 +85,8 @@
 
 export default{
 
-    props:['filterName'],
+    props:['filterName','stateFilter','terrFilter','isStateSelected'],
 
-    // setup () {
-    //     return {
-    //         model: ref('Potential'),
-    //         options,
-    //         chartTittle:ref('Nishant')
-    //     }
-    // },
-    
     data(){
         return { 
                 mychartdata:data,
@@ -118,13 +108,21 @@ export default{
     //   this.chartTittle=val
     //   console.log(this.mychartTittle)
     let path='http://127.0.0.1:5000/Chart2/'+val
-     
-      fetch(path)
+    console.log(path)
+
+    //sending post request to the server with the state and territory filter
+    //getting chart data     
+      fetch(path,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected})
+      })
       .then((response)=>{
           if(response.ok){
               return(response.json())
-          }      
-     
+          }else{
+              throw new Error("Something went wrong")
+          }     
       })
       .then((data)=>{  
         //   console.log(data)      

@@ -1,29 +1,13 @@
-<template>
-    <div style="max-width: 300px; padding:1vw">
-        <q-select 
-          filled 
-          v-model="model"           
-          :options="options"
-          stack-label         
-          label="Select Filter"
-        />
-        {{ customRender(model)}}
-    </div>
-    
-    <div class='main-container'>
-        <div class='chart'>
-            <canvas ref="mychart"></canvas>
-        </div>
-
-        <div class='chart'>  
-            <ChartTable2 :filter-name='model' :key='chartKey'/>
-        </div>
+<template>  
+    <p v-if="error">{{error}}</p>    
+    <div v-else class='chart'>
+        <canvas ref="mychart"></canvas>
     </div>        
 </template>
 
 <script>
     import Chart from 'chart.js/auto'
-    import ChartTable2 from './ChartTable2'
+    // import ChartTable2 from './ChartTable2'
     import ChartDataLabels from 'chartjs-plugin-datalabels';
     import { ref } from 'vue'
     const options= ['Potential','% Diagnosis Pats','% Treated Pats','Product A Sales','Product B Sales' ]
@@ -110,13 +94,11 @@ const model=ref('Potential')
 
 export default{
 
-    components:{
-      ChartTable2
-    },
+    props:['customFilter','stateFilter','terrFilter','isStateSelected'],
 
-    // computed:{
-    //       chartKey = model.value    
-    // },    
+    components:{
+    //   ChartTable2
+    },    
     
     data(){
 
@@ -124,13 +106,17 @@ export default{
         // Update the key to force reactivity when model changes
         //     this.key = model.value;
         // })    
-
+         const myval='Potential'
         return {                 
                 mychartdata:data,
                 myconfig:config,
                 mychartTittle:chartTittle,
                 model,
                 options,
+                error:null,
+                val:myval
+                // stateFilter,
+                // terrFilter
                 // chartKey
         }
 
@@ -139,106 +125,119 @@ export default{
     computed:{
         // It will change chartKey dataproperty if the model value gets changed.
         //so as to reload chart based on it
-       chartKey(){
-         console.log(model.value)
-         return model.value
-       }
+       //chartKey(){
+        //  console.log(model.value)    
+        //  return (model.value)
+        //return '${this.model}-${this.stateFilter}-${this.terrFilter}'
+         
+       //},
+       
     },
 
-//    mounted() {
-    // console.log("nishant")   
-    //   new Chart(this.$refs.mychart,this.myconfig);
-      //    Chart.register(ChartDataLabels);
-
-    //   let path='http://127.0.0.1:5000/Chart/Potential'
-     
-    //   fetch(path)
-    //   .then((response)=>{
-    //       if(response.ok){
-    //           return(response.json())
-    //       }      
-     
-    //   })
-    //   .then((data)=>{  
-    //       console.log(data)      
-    //     for (let i=0;i<2;i++){    
-    //         console.log(data.output[i][1],data.output[i][3] ) 
-    //         console.log(this.mychartdata.datasets[0].data[0].Accounts.value)     
-    //         this.mychartdata.datasets[0].data[i].Accounts.value= data.output[i][1]
-    //         this.mychartdata.datasets[0].data[i].Percent.value=data.output[i][3]            
-    //         }
-    //   }) 
-    //   .catch((err)=>{
-    //     console.log(err)
-    //   })
-
-     
-
-
-//    },
+   
 
    methods:{
-    customRender(val){
-      //changing label of chart based on it
-    //   this.mychartTittle=val
-      this.model=val
-      this.myconfig.options.plugins.title.text="Academic vs Community by "+val
-    //   console.log(val) 
-    //   this.chartTittle=val
-    //   console.log(this.mychartTittle)
-     let path='http://127.0.0.1:5000/Chart/'+val
+    customRender(){
+      //changing label of chart based on metrix selected(potential,diag.....)  
+    //   this.model=val
+      this.myconfig.options.plugins.title.text="340B vs Non-340B by "+this.customFilter
+   
+    // converting filter data to JSON to pass in the server
+    //  console.log('State-jSON',JSON.stringify(this.stateFilter))
+    //  console.log('territory-jSON',JSON.stringify(this.terrFilter))
      
-      fetch(path)
+
+     let path='http://127.0.0.1:5000/Chart2/'+this.customFilter
+    //  console.log(path)
+      
+      //sending post request to the server with the state and territory filter
+      //getting chart data
+      
+      this.error=null  //initializing the error with the null value again
+      fetch(path,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected})
+      })    
       .then((response)=>{
+          //Handling errors if the server is not generating the output properly
           if(response.ok){
               return(response.json())
-          }      
-     
+          }else{
+              throw new Error("Something went wrong")
+          }    
       })
       .then((data)=>{  
         //   console.log(data)      
         for (let i=0;i<2;i++){    
-            // console.log(data.output[i][1],data.output[i][3] ) 
-            // console.log(this.mychartdata.datasets[0].data[0].Accounts.value)     
+            //Updating chart with the fetched data  
             this.mychartdata.datasets[0].data[i].Accounts.value= data.output[i][1]
             this.mychartdata.datasets[0].data[i].Percent.value=data.output[i][3]            
             }
         this.updateChart();
       }) 
-      .catch((err)=>{
-        console.log(err)
+      .catch((err)=>{        
+        this.error=true
+        console.log(err,"Failed to fetch data")
       })
     },
 
-      updateChart() {
-        // Destroy the old chart if it exists
+    updateChart(){       
         if (this.chart) {
+             // Destroy the old chart if it exists
             this.chart.destroy();
         }
         // Create a new chart with updated data
         this.chart = new Chart(this.$refs.mychart, this.myconfig);
-        }
-
+    }
     
-  }
+  },
+
+  mounted(){
+       this.customRender();
+   },
+
+  watch:{
+      stateFilter(newValue,oldValue){
+          if(newValue!=oldValue){
+               this.customRender();
+          }
+      },
+
+      terrFilter(newValue,oldValue){
+          if(!this.isStateSelected && newValue!=oldValue){
+               this.customRender();
+          }
+      },
+
+      customFilter(newValue,oldValue){
+          if(newValue!=oldValue){
+               this.customRender();
+          }
+      }
+
+  } 
 
 }
 </script>
 
 
 <style scoped>
-
 .chart{
     width:70vw;
     height: 50vh;
     padding: 1vw
 }
 
-.main-container{
+/* .main-container{
     display:flex;
     text-align: center;
     justify-content: center;
 
-}
+} */
 
+p{
+    font-display: bold;
+    size: 2vh;
+}
 </style>
