@@ -100,13 +100,13 @@ export default {
 
   methods: {
     initMap() {
-      const usaBounds = {
-        north: 49.3457868,
-        south: 22.7433195,
-        east: -66.9513812,
-        west: -124.7844079,
-      };
-      console.log(usaBounds);
+      
+        // let north= 49.3457868
+        // let south= 22.7433195
+        // let east = -66.9513812
+        // let west = -124.7844079
+      
+      // console.log(usaBounds);
 
       this.map = new window.google.maps.Map(this.$refs.mapContainer, {
         zoom: 4,
@@ -252,7 +252,7 @@ export default {
         const lat = parseFloat(x.coords.lat);
         const long = parseFloat(x.coords.lon);
 
-        const marker = new window.google.maps.Marker({
+        new window.google.maps.Marker({
           position: { lat: lat, lng: long },
           map: this.map,
 
@@ -262,8 +262,9 @@ export default {
           },
           zIndex: 9999,
         });
-        console.log(marker);
-      });
+
+        // console.log(marker);
+      })
     },
 
     getDataFromFlask() {

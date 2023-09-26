@@ -198,19 +198,21 @@ def home():
 
         orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
 
+
         create_script=f'''select coalesce("org_tier",'Total') as org_tier,
-                          sum("org") as "org",sum("account") as account,sum(physician) as physician,sum(product_sales) as product_sales,sum(Potential) as Potential,sum(Product_A_sales) as product_a_sales,sum(Product_B_sales)as product_b_sales,sum(Diagnosed_Pats) as diagnosed_pats,sum(Treated_pats) as treated_pats
-                          from
-                          ( select t2.*,coalesce(t1.ORG,0) as org,coalesce(t1.ACCOUNT,0) as account,coalesce(t1.PHYSICIAN,0) as physician,coalesce(t1.PRODUCT_SALES,0) as product_sales,coalesce(t1.Potential,0) as Potential,
+                        cast (sum("org") as INT) as "org",cast(sum("account") as INT) as account,cast(sum(physician) as INT) as physician,cast(sum(product_sales) as INT) as product_sales,cast(sum(Potential) as INT) as Potential,cast(sum(Product_A_sales) as INT) as product_a_sales,cast(sum(Product_B_sales) as INT) as product_b_sales,cast(sum(Diagnosed_Pats) as INT) as diagnosed_pats,cast(sum(Treated_pats) as INT) as treated_pats
+                        from
+                        (	
+                            select t2.*,coalesce(t1.ORG,0) as org,coalesce(t1.ACCOUNT,0) as account,coalesce(t1.PHYSICIAN,0) as physician,coalesce(t1.PRODUCT_SALES,0) as product_sales,coalesce(t1.Potential,0) as Potential,
                             coalesce (t1.Product_A_sales,0) as Product_A_sales,coalesce(t1.Product_B_sales,0)as Product_B_sales,coalesce (t1.Diagnosed_Pats,0) as Diagnosed_Pats,coalesce (t1.Treated_Pats,0) as Treated_Pats
                             from 
                             (
                                 select coalesce("org_tier",'NT') as org_tier,count(distinct("org_id"))as ORG,sum("org_number_of_accounts") as ACCOUNT,sum("org_number_of_hcps") as PHYSICIAN,sum("org_product_sales") as PRODUCT_SALES,
-                                sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and  {orgTerritoryName}) as Potential,
-                                sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and  {orgTerritoryName}) as Product_A_sales,
-                                sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and  {orgTerritoryName}) as Product_B_sales,
-                                sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and  {orgTerritoryName}) as Diagnosed_Pats,
-                                sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and  {orgTerritoryName}) as Treated_Pats
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Potential,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Product_A_sales,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Product_B_sales,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Diagnosed_Pats,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Treated_Pats
                                 from test.test_table9
                                 where {orgStateName} and {orgTerritoryName}
                                 group by "org_tier"	
@@ -218,15 +220,16 @@ def home():
                             right join 
                             (select distinct coalesce("org_tier",'NT') as "org_tier" 
                             from test.test_table9)t2
-                            on t1.org_tier=t2.org_tier
-                            order by case 
-                            WHEN t2."org_tier" = 'H' then 1
-                            WHEN t2."org_tier" = 'M' then 2 
-                            WHEN t2."org_tier" = 'L' then 3
-                            WHEN t2."org_tier" = 'NT' then 4
-                            END asc
-                            )a 
-                            group by rollup (org_tier)'''
+                            on t1.org_tier=t2.org_tier                            
+                        )a 
+                        group by rollup ("org_tier")
+                        order by case 
+                        WHEN a."org_tier" = 'H' then 1
+                        WHEN a."org_tier" = 'M' then 2 
+                        WHEN a."org_tier" = 'L' then 3
+                        WHEN a."org_tier" = 'NT' then 4
+                        WHEN a."org_tier" = 'Total' then 5
+                        END asc'''
         
         cur.execute(create_script)
         res=cur.fetchall()

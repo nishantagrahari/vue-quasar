@@ -29,8 +29,7 @@
             <!-- adding expandable button to H/M/L rows and rest keep as it is -->
             <q-btn v-if="col.value === 'H'  || col.value === 'M' || col.value === 'L' " class="parent_button">
               <div class="expandable-btn">
-                <q-btn
-                  
+                <q-btn                  
                   color="black"
                   class="header_row"
                   round
@@ -57,7 +56,7 @@
           <!-- Adding fields in inner row -->
           <q-td
             ><div class="inner_button">
-              {{ props.row.sub[0].toLocaleString("en-US") }}
+              {{ props.row.sub[0].toLocaleString("en-IN") }}
             </div>
           </q-td>
           <q-td
@@ -74,7 +73,7 @@
                 width: 100 - (props.row.sub[1] / props.row.orgs) * 100 + '%',
               }"
             >
-              {{ props.row.sub[1].toLocaleString("en-US") }}
+              {{ props.row.sub[1].toLocaleString("en-IN") }}
             </div>
           </q-td>
           <q-td
@@ -91,7 +90,7 @@
                 width: 100 - (props.row.sub[2] / props.row.accounts) * 100 + '%',
               }"
             >
-              {{ props.row.sub[2].toLocaleString("en-US") }}
+              {{ props.row.sub[2].toLocaleString("en-IN") }}
             </div>
           </q-td>
           <q-td
@@ -429,12 +428,6 @@
 
           <!-- </template>    -->
         </q-tr>
-
-        <!-- <q-tr v-show="props.expand" v-if="inner_row==true" :props="props" >
-            {{console.log("nisahnt","props.expand")}}
-            {{props.expand=false}}
-          </q-tr>
-           -->
       </template>
     </q-table>
   </div>
@@ -612,17 +605,9 @@ export default {
 
       this.loadInnerRow(rows_tier_L, prop_pass);
     },
-    // check(props){
-    //      if(props.expand==true && this.inner_row==false){
-    //        props.expand=false
-    //      }
-
-    // },
 
     loadInnerRow(rows, prop) {
-      // console.log(rows)
-      // this.inner_row=false
-      // prop.expand=this.inner_row
+  
       let path = "http://127.0.0.1:5000/table/decile/" + rows.Tier;
       // console.log(path)
       fetch(path, {
@@ -701,7 +686,7 @@ export default {
         })
         .then((data) => {
           console.log(data);
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < 5; i++) {
             this.rows[i].orgs = data.output[i][1];
             this.rows[i].accounts = data.output[i][2];
             this.rows[i].hcps = data.output[i][3];
