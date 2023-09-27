@@ -95,7 +95,7 @@ const model=ref('Potential')
 
 export default{
 
-    props:['customFilter','stateFilter','terrFilter','isStateSelected','tierFilter'],
+    props:['customFilter','stateFilter','tierFilter'],
 
     components:{
     //   ChartTable2
@@ -133,12 +133,9 @@ export default{
    
 
    methods:{
-    customRender(){
-     
-    //   this.myconfig.options.plugins.title.text="Academic vs Community by "+ this.customFilter
+    customRender(){     
+    //   this.myconfig.options.plugins.title.text="Academic vs Community by "+ this.customFilter  
    
-   
-
      let path='http://127.0.0.1:5000/Chart1/'+this.customFilter
      console.log(path)
       
@@ -149,7 +146,7 @@ export default{
       fetch(path,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected,tier:this.tierFilter})
+          body:JSON.stringify({state:this.stateFilter,tier:this.tierFilter})
       })    
       .then((response)=>{
           //Handling errors if the server is not generating the output properly
@@ -181,8 +178,7 @@ export default{
         }
         // Create a new chart with updated data
         this.chart = new Chart(this.$refs.mychart, this.myconfig);
-    }
-    
+    }    
   },
 
   mounted(){
@@ -194,13 +190,7 @@ export default{
           if(JSON.stringify(newValue)!== JSON.stringify(oldValue)){
                this.customRender();
           }
-      },
-
-      terrFilter(newValue,oldValue){
-          if(!this.isStateSelected && JSON.stringify(newValue)!== JSON.stringify(oldValue)){
-               this.customRender();
-          }
-      },
+      },     
 
       customFilter(newValue,oldValue){
           if(newValue!=oldValue){

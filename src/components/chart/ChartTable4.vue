@@ -6,8 +6,7 @@
 </template>
 
 <script>
-    import Chart from 'chart.js/auto'
-    // import ChartTable2 from './ChartTable2'
+    import Chart from 'chart.js/auto'    
     import ChartDataLabels from 'chartjs-plugin-datalabels';
     import { ref } from 'vue'
     const options= ['Potential','% Diagnosis Pats','% Treated Pats','Product A Sales','Product B Sales' ]
@@ -95,11 +94,7 @@ const model=ref('Potential')
 
 export default{
 
-    props:['customFilter','stateFilter','terrFilter','isStateSelected','tierFilter'],
-
-    components:{
-    //   ChartTable2
-    },    
+    props:['customFilter','stateFilter','tierFilter'],    
     
     data(){
 
@@ -121,18 +116,6 @@ export default{
                 // chartKey
         }
 
-    },
-
-    computed:{
-        // It will change chartKey dataproperty if the model value gets changed.
-        //so as to reload chart based on it
-       //chartKey(){
-        //  console.log(model.value)    
-        //  return (model.value)
-        //return '${this.model}-${this.stateFilter}-${this.terrFilter}'
-         
-       //},
-       
     },
 
    
@@ -158,7 +141,7 @@ export default{
       fetch(path,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected,tier:this.tierFilter})
+          body:JSON.stringify({state:this.stateFilter,tier:this.tierFilter})
       })    
       .then((response)=>{
           //Handling errors if the server is not generating the output properly
@@ -204,13 +187,7 @@ export default{
                this.customRender();
           }
       },
-
-      terrFilter(newValue,oldValue){
-          if(!this.isStateSelected && JSON.stringify(newValue)!== JSON.stringify(oldValue)){
-               this.customRender();
-          }
-      },
-
+      
        tierFilter(newValue,oldValue){
           if(newValue!=oldValue){
                this.customRender();

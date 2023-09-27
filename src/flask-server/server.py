@@ -33,23 +33,18 @@ conn = psycopg2.connect(
 )
 
 
-def check_state_territory(newState, newTerr, checkStateSelected):
+def check_state_territory(newState):
     # checking for state and terriroty filter and updating params based on it
     orgStateName = ""
-    orgTerritoryName = ""
+    # orgTerritoryName = ""
 
     if (newState == ""):
         orgStateName = True
-        orgTerritoryName = True
-    else:
-        if (newTerr != "" and checkStateSelected == False):
-            orgStateName = f'org_state_name in ({newState})'
-            orgTerritoryName = f'org_territory in ({newTerr})'
-        else:
-            orgStateName = f"org_state_name in ({newState})"
-            orgTerritoryName = True
+        # orgTerritoryName = True
+    else:       
+        orgStateName = f"org_state_name in ({newState})"       
 
-    return (orgStateName, orgTerritoryName)
+    return (orgStateName)
 
 def check_tier(newTier):
     orgTierName= ""
@@ -71,34 +66,32 @@ def check_tier(newTier):
 @app.route('/map', methods=['GET', 'POST'])
 def map():
     cur = conn.cursor()
-    newState = ""
-    newTerr = ""
-    newTier=""
-    checkStateSelected = True
+    newState = ""   
+    newTier= ""   
     post_data = request.get_json()
 
 
     # Removing [] from the items
 
     newState = str(post_data.get('state'))[1:-1]
-    newTerr = str(post_data.get('terr'))[1:-1]
-    checkStateSelected = bool(post_data.get('isstateselected'))
+    # newTerr = str(post_data.get('terr'))[1:-1]
+    # checkStateSelected = bool(post_data.get('isstateselected'))
     newTier=str(post_data.get('tier'))
 
     # print('new data map', newState, newTerr, checkStateSelected)
 
     # Changing param best on the state and Territory filter
 
-    orgStateName, orgTerritoryName = check_state_territory(newState, newTerr, checkStateSelected)
+    orgStateName= check_state_territory(newState)
     orgTierName=check_tier(newTier)
     
-    print('new map data', orgStateName, orgTerritoryName, orgTierName)
+    print('new map data', orgStateName,orgTierName)
 
 
 
     create_script = f"""select org_geo_coord_x ,org_geo_coord_y, org_market_sales_ind13
                         from test.test_table9
-                        where {orgStateName} and {orgTerritoryName} and {orgTierName}                       
+                        where {orgStateName} and {orgTierName}                       
                         order by org_market_sales_ind13 desc"""
 
     cur.execute(create_script)
@@ -159,22 +152,21 @@ def getstate(s):
 def home():   
         cur=conn.cursor()
         newState=""
-        newTerr=""
-        checkStateSelected= True       
+        # newTerr=""
+        # checkStateSelected= True       
 
         post_data=request.get_json()    
-        print(post_data)
+        # print(post_data)
 
         #Removing [] from the items
         newState=str(post_data.get('state'))[1:-1]
-        newTerr=str(post_data.get('terr'))[1:-1]
+        # newTerr=str(post_data.get('terr'))[1:-1]
         checkStateSelected=bool(post_data.get('isstateselected'))
 
-        print('new data Tier',newState,newTerr,checkStateSelected)
-        print('checkStateSelected Tier',checkStateSelected)
+        print('new data Tier',newState)
+        # print('checkStateSelected Tier',checkStateSelected)
 
-        orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
-
+        orgStateName=check_state_territory(newState)
 
         create_script=f'''select coalesce("org_tier",'Total') as org_tier,
                         cast (sum("org") as INT) as "org",cast(sum("account") as INT) as account,cast(sum(physician) as INT) as physician,cast(sum(product_sales) as INT) as product_sales,cast(sum(Potential) as INT) as Potential,cast(sum(Product_A_sales) as INT) as product_a_sales,cast(sum(Product_B_sales) as INT) as product_b_sales,cast(sum(Diagnosed_Pats) as INT) as diagnosed_pats,cast(sum(Treated_pats) as INT) as treated_pats
@@ -185,13 +177,13 @@ def home():
                             from 
                             (
                                 select coalesce("org_tier",'NT') as org_tier,count(distinct("org_id"))as ORG,sum("org_number_of_accounts") as ACCOUNT,sum("org_number_of_hcps") as PHYSICIAN,sum("org_product_sales") as PRODUCT_SALES,
-                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Potential,
-                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Product_A_sales,
-                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Product_B_sales,
-                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Diagnosed_Pats,
-                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName} and {orgTerritoryName}) as decimal),0) as Treated_Pats
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName}) as decimal),0) as Potential,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName}) as decimal),0) as Product_A_sales,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName}) as decimal),0) as Product_B_sales,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName}) as decimal),0) as Diagnosed_Pats,
+                                Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where {orgStateName}) as decimal),0) as Treated_Pats
                                 from test.test_table9
-                                where {orgStateName} and {orgTerritoryName}
+                                where {orgStateName}
                                 group by "org_tier"	
                             )t1 
                             right join 
@@ -217,31 +209,31 @@ def home():
 def Tier(s):     
     cur=conn.cursor()
     newState=""
-    newTerr=""
-    checkStateSelected= True     
+    # newTerr=""
+    # checkStateSelected= True     
     post_data=request.get_json()
 
-    print(post_data)
+    # print(post_data)
     #Removing [] from the items
     newState=str(post_data.get('state'))[1:-1]
-    newTerr=str(post_data.get('terr'))[1:-1]
-    checkStateSelected=bool(post_data.get('isstateselected'))
+    # newTerr=str(post_data.get('terr'))[1:-1]
+    # checkStateSelected=bool(post_data.get('isstateselected'))
 
-    print('new data chart1',newState,newTerr,checkStateSelected)    
+    print('new data chart1',newState)    
      #Changing param best on the state and Territory filter 
-    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)    
+    orgStateName=check_state_territory(newState)    
 
     create_script = f""" select CONCAT('D',a.decile) as Decile,a.org,a.account,a.physician,a.product_sales,a.Potential,a.Product_A_sales,a.Product_B_sales,a.Diagnosed_Pats,a.Treated_Pats from 
                         (	
                             select "org_decile" AS decile,count(distinct("org_id"))as org,sum("org_number_of_accounts") as account,sum("org_number_of_hcps") as physician,
                             sum("org_product_sales") as product_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName} and {orgTerritoryName}),'%') as Potential,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}'and {orgStateName} and {orgTerritoryName}),'%') as Product_A_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName} and {orgTerritoryName}),'%') as Product_B_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName} and {orgTerritoryName}),'%') as Diagnosed_Pats,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName} and {orgTerritoryName}),'%') as Treated_Pats
+                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Potential,
+                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}'and {orgStateName}),'%') as Product_A_sales,
+                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Product_B_sales,
+                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Diagnosed_Pats,
+                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Treated_Pats
                             from test."test_table9"
-                            where "org_tier"='{s}' and {orgStateName} and {orgTerritoryName}
+                            where "org_tier"='{s}' and {orgStateName}
                             group by "org_decile"
                             order by "org_decile" desc
                         )a"""
@@ -258,22 +250,22 @@ def Tier(s):
 def Chartt(s):
     # return (s)
     newState=""
-    newTerr=""
-    checkStateSelected= True 
+    # newTerr=""
+    # checkStateSelected= True 
     newTier=""
     cur=conn.cursor()
 
     post_data=request.get_json()    
-    print(post_data)
+    # print(post_data)
     newState=str(post_data.get('state'))[1:-1]
-    newTerr=str(post_data.get('terr'))[1:-1]
-    checkStateSelected=bool(post_data.get('isstateselected'))
+    # newTerr=str(post_data.get('terr'))[1:-1]
+    # checkStateSelected=bool(post_data.get('isstateselected'))
     newTier=str(post_data.get('tier'))
 
    
     # print('chart1',newState,newTerr,checkStateSelected,newTier)    
      #Changing param best on the state and Territory filter 
-    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
+    orgStateName=check_state_territory(newState)
     orgTierName=check_tier(newTier)
 
     print("new chart Tier name",orgTierName)  
@@ -285,11 +277,11 @@ def Chartt(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_academic_vs_community",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName}) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTierName}) as total
                                     from
                                     ( 
                                         select "org_id" as org,"org_academic_vs_community","org_market_sales_ind13"
-                                        from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName}
+                                        from test."test_table9" where {orgStateName} and {orgTierName}
                                     )a
                                     group by a."org_academic_vs_community"
                                 )b
@@ -306,11 +298,11 @@ def Chartt(s):
                                         select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                         from
                                         (	select a."org_academic_vs_community",count(distinct(a.org)) as countt,
-                                            (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100) as total
+                                            (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTierName} and "org_market_sales_ind13">100) as total
                                             from
                                             ( 
                                                 select "org_id" as org,"org_academic_vs_community","org_market_sales_ind13"
-                                                from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100
+                                                from test."test_table9" where {orgStateName} and {orgTierName} and "org_market_sales_ind13">100
                                             )a
                                             group by a."org_academic_vs_community"
                                         )b
@@ -332,19 +324,19 @@ def Chart2(s):
     cur=conn.cursor()
 
     newState=""
-    newTerr=""
+    # newTerr=""
     newTier=""
-    checkStateSelected= True 
+    # checkStateSelected= True 
     cur=conn.cursor()
 
     post_data=request.get_json()    
     # print(post_data)
     newState=str(post_data.get('state'))[1:-1]
-    newTerr=str(post_data.get('terr'))[1:-1]
-    checkStateSelected=bool(post_data.get('isstateselected'))
+    # newTerr=str(post_data.get('terr'))[1:-1]
+    # checkStateSelected=bool(post_data.get('isstateselected'))
     newTier=str(post_data.get('tier'))
 
-    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
+    orgStateName=check_state_territory(newState)
     orgTierName=check_tier(newTier)
 
     print("new chart2 Tier name",orgTierName)   
@@ -356,11 +348,11 @@ def Chart2(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_flag_for_340b",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName}) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTierName}) as total
                                     from
                                     ( 
                                         select  "org_id" as org,"org_flag_for_340b","org_product_sales"
-                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName}
+                                        from test."test_table9"  where {orgStateName} and {orgTierName}
                                     )a
                                     group by a."org_flag_for_340b"
                                 )b
@@ -377,11 +369,11 @@ def Chart2(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_flag_for_340b",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTierName} and "org_market_sales_ind13">100) as total
                                     from
                                     ( 
                                         select  "org_id" as org,"org_flag_for_340b","org_product_sales"
-                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100
+                                        from test."test_table9"  where {orgStateName} and {orgTierName} and "org_market_sales_ind13">100
                                     )a
                                     group by a."org_flag_for_340b"
                                 )b
