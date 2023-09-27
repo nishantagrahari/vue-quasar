@@ -1,11 +1,20 @@
 <template>
   <div class="q-pa-md">
     <div class="master-filter-section">
-      <div class="master-filter">
-        <StateFilter @state-filter="applyStateFilter" />       
+      <div class="master-filter-sub_section">
+        <div class="state-filter">
+          <StateFilter @state-filter="applyStateFilter" />        
+        </div>
+        <ResetBtn />
       </div>
-      <ResetBtn />
+      <div class="qchip">
+         <QView
+            :state-filter='mapped2'
+            @state-chip='finalStateFilter'       
+        />
+      </div> 
     </div>
+    
     <div class="title"><span>Tier Summary</span></div>
 
     <TierSummary
@@ -26,15 +35,13 @@
         
         <ChartTable3
           :custom-filter="mapped3"
-          :state-filter="mapped1"     
-          :is-state-selected="isStateSelected"
+          :state-filter="mapped1"  
           :tier-filter='tierFilter'
         />
 
         <ChartTable4
           :custom-filter="mapped3"
           :state-filter="mapped1"        
-          :is-state-selected="isStateSelected"
           :tier-filter='tierFilter'
         />
       </div>
@@ -56,16 +63,17 @@ import StateFilter from "./master-filter/StateFilter.vue";
 import GoogleMap from "./GoogleMap.vue";
 import TierSummary from "./TierSummary.vue";
 import ResetBtn from "./master-filter/ResetFilter.vue";
+import QView from './master-filter/QchipView.vue';
 
 let mapped1 = "";
-// let mapped2 = "";
+let mapped2 = "";
 let mapped3 = "Potential";
 let tierFilter=''
 
 export default {
   data() {
     // true for stateselected will disable the filter
-    return { mapped1,mapped3,tierFilter};
+    return { mapped1,mapped2,mapped3,tierFilter};
   },
 
   components: {
@@ -76,52 +84,57 @@ export default {
     StateFilter,
     TierSummary,
     ResetBtn,
+    QView
   },
 
   methods: {
-     applyTierFilter(val){
-       //function to change component value based on Tier clicked
-       this.tierFilter=val
-       console.log(val)
-     },
+      applyTierFilter(val){
+        //function to change component value based on Tier clicked
+        this.tierFilter=val
+        console.log(val)
+      },
 
-    //functions to accepts state & territory filter
-    applyStateFilter(val) {
-      // console.log("Filter-state",val)
-      this.mapped1 = val.map((x) => x);
-      // if (val.length != 0) {
-      //   //if state is selected then enable the territory filter
-      //   //and viceversa
-      //   this.isStateSelected = false;
-      // } else {
-      //   this.isStateSelected = true;
-      // }
-    },
-   
+      //functions to accepts state & territory filter
+      applyStateFilter(val) {
+        this.mapped2=val      
+      },
 
-    applyCustomFilter(v) {
-      console.log(v);
-      this.mapped3 = v;
+      finalStateFilter(v){     
+        this.mapped1= [...v]            
+        console.log(this.mapped)
+      },
+    
+      applyCustomFilter(v) {
+        console.log(v);
+        this.mapped3 = v;
+      },
     },
-  },
 };
 </script>
 
 <style scoped>
 .master-filter-section {
-  display: flex;
-  justify-content: space-around;
+  
   background-color: #e6e6e6;
   align-items: center;
-  padding: 1vw;
+  padding:1vw 1vw 0.5vw 1vw ;
   margin: 0 0 1vw 0;
 }
-.master-filter {
+
+.master-filter-sub_section{
+  display: flex;
+  justify-content: space-around;
+
+}
+
+.state-filter {
   padding: 0 1vw;
   display: flex;
-
   align-items: center;
   flex: 1;
+}
+.qchip{
+   padding:0.5vw 0.7vw 0vw;
 }
 
 .chart-view {

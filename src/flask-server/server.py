@@ -227,11 +227,11 @@ def Tier(s):
                         (	
                             select "org_decile" AS decile,count(distinct("org_id"))as org,sum("org_number_of_accounts") as account,sum("org_number_of_hcps") as physician,
                             sum("org_product_sales") as product_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Potential,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}'and {orgStateName}),'%') as Product_A_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Product_B_sales,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Diagnosed_Pats,
-                            concat(sum("org_market_sales_ind13")*100/(select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}),'%') as Treated_Pats
+                            concat(Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}) as decimal),0),'%') as Potential,
+                            concat(Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}'and {orgStateName}) as decimal),0),'%') as Product_A_sales,
+                            concat(Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}) as decimal),0),'%') as Product_B_sales,
+                            concat(Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}) as decimal),0),'%') as Diagnosed_Pats,
+                            concat(Round(sum("org_market_sales_ind13")*100/cast((select sum("org_market_sales_ind13") from test.test_table9 where "org_tier"='{s}' and {orgStateName}) as decimal),0),'%') as Treated_Pats
                             from test."test_table9"
                             where "org_tier"='{s}' and {orgStateName}
                             group by "org_decile"

@@ -1,17 +1,19 @@
 <template> 
 
     {{ dataToParent(model)}}
-    
+    <!-- use-input
+        use-chips
+        multiple
+     -->
       <q-select
         class=" filter1"        
         v-model="model"
-        use-input
-        use-chips
-        multiple        
+        hide-selected
+        use-input                
         :options="options"
         label="Select State"        
         label-color="white"    
-        option-class="custom-option-css"        
+        option-class="custom-option-css"       
       
         @filter= "filterFn"          
       >
