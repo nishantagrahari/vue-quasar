@@ -17,6 +17,7 @@
       :state-filter="mapped1"
       :terr-filter="mapped2"
       :is-state-selected="isStateSelected"
+      @row-tier="applyTierFilter"
     />
 
     <div>
@@ -34,12 +35,15 @@
           :state-filter="mapped1"
           :terr-filter="mapped2"
           :is-state-selected="isStateSelected"
+          :tier-filter='tierFilter'
         />
+
         <ChartTable4
           :custom-filter="mapped3"
           :state-filter="mapped1"
           :terr-filter="mapped2"
           :is-state-selected="isStateSelected"
+          :tier-filter='tierFilter'
         />
       </div>
     </div>
@@ -48,6 +52,7 @@
       :state-filter="mapped1"
       :terr-filter="mapped2"
       :is-state-selected="isStateSelected"
+      :tier-filter='tierFilter'
     />
   </div>
 </template>
@@ -65,12 +70,13 @@ import ResetBtn from "./master-filter/ResetFilter.vue";
 let mapped1 = "";
 let mapped2 = "";
 let mapped3 = "Potential";
+let tierFilter=''
 // let chartKey=""
 
 export default {
   data() {
     // true for stateselected will disable the filter
-    return { mapped1, mapped2, isStateSelected: true, mapped3 };
+    return { mapped1, mapped2, isStateSelected: true, mapped3,tierFilter };
   },
 
   components: {
@@ -85,6 +91,15 @@ export default {
   },
 
   methods: {
+     applyTierFilter(val){
+       //function to change component value based on Tier clicked
+       this.tierFilter=val
+       console.log(val)
+     },
+
+
+
+
     //functions to accepts state & territory filter
     applyStateFilter(val) {
       // console.log("Filter-state",val)

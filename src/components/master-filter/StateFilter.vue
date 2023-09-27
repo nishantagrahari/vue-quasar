@@ -1,11 +1,9 @@
 <template> 
 
     {{ dataToParent(model)}}
-
     
       <q-select
-        class=" filter1"
-        
+        class=" filter1"        
         v-model="model"
         use-input
         use-chips
@@ -13,10 +11,9 @@
         :options="options"
         label="Select State"        
         label-color="white"    
-        option-class="custom-option-css"    
+        option-class="custom-option-css"        
       
-        @filter= "filterFn" 
-          
+        @filter= "filterFn"          
       >
       
         <template v-slot:no-option >

@@ -6,7 +6,6 @@
       <q-select
       class="filter2"
         :disable="isStateSelected"
-        filled
         v-model="model"
         use-chips
         multiple        

@@ -22,7 +22,7 @@
                                 'Community'
                             ],
                     datasets: [{
-                        label: 'Total # account ',
+                        label: 'Total # orgs ',
                         data: [
                                 {Accounts:{value:3},Potential:{value:600},Percent:{value:30}}, 
                                 {Accounts:{value:5},Potential:{value:100},Percent:{value:50}}
@@ -95,19 +95,14 @@ const model=ref('Potential')
 
 export default{
 
-    props:['customFilter','stateFilter','terrFilter','isStateSelected'],
+    props:['customFilter','stateFilter','terrFilter','isStateSelected','tierFilter'],
 
     components:{
     //   ChartTable2
     },    
     
-    data(){
-
-        // computed(model, () => {
-        // Update the key to force reactivity when model changes
-        //     this.key = model.value;
-        // })    
-         const myval='Potential'
+    data(){   
+        const myval='Potential'
         return {                 
                 mychartdata:data,
                 myconfig:config,
@@ -123,7 +118,7 @@ export default{
 
     },
 
-    computed:{
+    // computed:{
         // It will change chartKey dataproperty if the model value gets changed.
         //so as to reload chart based on it
        //chartKey(){
@@ -133,7 +128,7 @@ export default{
          
        //},
        
-    },
+    // },
 
    
 
@@ -144,7 +139,7 @@ export default{
    
    
 
-     let path='http://127.0.0.1:5000/Chart/'+this.customFilter
+     let path='http://127.0.0.1:5000/Chart1/'+this.customFilter
      console.log(path)
       
       //sending post request to the server with the state and territory filter
@@ -154,7 +149,7 @@ export default{
       fetch(path,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected})
+          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected,tier:this.tierFilter})
       })    
       .then((response)=>{
           //Handling errors if the server is not generating the output properly
@@ -208,6 +203,12 @@ export default{
       },
 
       customFilter(newValue,oldValue){
+          if(newValue!=oldValue){
+               this.customRender();
+          }
+      },
+
+      tierFilter(newValue,oldValue){
           if(newValue!=oldValue){
                this.customRender();
           }

@@ -31,7 +31,7 @@ import { ref } from "vue";
 
 export default {
   name: "GoogleMap",
-  props: ["customFilter", "stateFilter", "terrFilter", "isStateSelected"],
+  props: ['customFilter', 'stateFilter', 'terrFilter', 'isStateSelected','tierFilter'],
   setup() {
     return {
       sliderValue: ref(10),
@@ -126,18 +126,11 @@ export default {
       this.addMarkers();
     },
 
-    customRender() {
-      //changing label of chart based on metrix selected(potential,diag.....)
-      //   this.model=val
-
-      // converting filter data to JSON to pass in the server
-      //  console.log('State-jSON',JSON.stringify(this.stateFilter))
-      //  console.log('territory-jSON',JSON.stringify(this.terrFilter))
-
+    customRender() {      
       let path = "http://127.0.0.1:5000/map";
 
       //sending post request to the server with the state and territory filter
-      //getting chart data
+      //getting map data
 
       this.error = null; //initializing the error with the null value again
       fetch(path, {
@@ -147,6 +140,7 @@ export default {
           state: this.stateFilter,
           terr: this.terrFilter,
           isstateselected: this.isStateSelected,
+          tier:this.tierFilter
         }),
       })
         .then((response) => {
@@ -595,6 +589,13 @@ export default {
         this.customRender();
       }
     },
+    
+    tierFilter(newValue,oldValue){
+          if(newValue!=oldValue){
+               this.customRender();
+          }
+    }
+
   },
 };
 </script>

@@ -27,7 +27,7 @@
         <q-tr :props="props">
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <!-- adding expandable button to H/M/L rows and rest keep as it is -->
-            <q-btn v-if="col.value === 'H'  || col.value === 'M' || col.value === 'L' " class="parent_button">
+            <q-btn v-if="col.value === 'HIGH'  || col.value === 'MEDIUM' || col.value === 'LOW' " class="parent_button" >
               <div class="expandable-btn">
                 <q-btn                  
                   color="black"
@@ -42,7 +42,9 @@
                 />{{ col.value }}
               </div>
             </q-btn>
-            
+            <q-btn v-else-if="col.name === '#Orgs'" @click="selectTier(props.row.Tier.charAt(0))" class="parent_button">
+              {{ col.value.toLocaleString("en-US") }}
+            </q-btn>
             <q-btn v-else class="parent_button">
               {{ col.value.toLocaleString("en-US") }}
             </q-btn>
@@ -66,6 +68,7 @@
                 width: (props.row.sub[1] / props.row.orgs) * 100 + '%',
               }"
               style="background-color: #fff2cc"
+              @click="selectTier(props.row.sub[0])"
             ></div>
             <div
               class="value"
@@ -159,6 +162,7 @@
               :style="{
                 width: (props.row.sub2[1] / props.row.orgs) * 100 + '%',
               }"
+              @click="selectTier(props.row.sub2[0])"
             ></div>
             <div
               class="value"
@@ -255,6 +259,7 @@
                 width: (props.row.sub3[1] / props.row.orgs) * 100 + '%',
               }"
               style="background-color: #fff2cc"
+              @click="selectTier(props.row.sub3[0])"
             ></div>
             <div
               class="value"
@@ -349,6 +354,7 @@
                 width: (props.row.sub4[1] / props.row.orgs) * 100 + '%',
               }"
               style="background-color: #fff2cc"
+              @click="selectTier(props.row.sub4[0])"
             ></div>
             <div
               class="value"
@@ -495,7 +501,7 @@ const columns = [
 const rows = ref([
   {
     id: "1",
-    Tier: "H",
+    Tier: "HIGH",
     name: "nishant",
     orgs: 45,
     accounts: 150,
@@ -513,7 +519,7 @@ const rows = ref([
   },
   {
     id: "2",
-    Tier: "M",
+    Tier: "MEDIUM",
     name: "nishant",
     orgs: 185,
     accounts: 548,
@@ -530,7 +536,7 @@ const rows = ref([
   },
   {
     id: "3",
-    Tier: "L",
+    Tier: "LOW",
     name: "nishant",
     orgs: 185,
     accounts: 548,
@@ -576,39 +582,51 @@ const rows = ref([
   },
 ]);
 
+const rowTier= ''
+
 export default {
   props: ["stateFilter", "terrFilter", "isStateSelected"],
-
+  
   setup() {
     return {
       columns: columns,
-      rows: rows
+      rows: rows,
+      rowTier:rowTier
       // rows:rows
     };
   },
-  
+  emits:["row-tier"],
   methods: {
+
+    selectTier(Tier){
+        this.rowTier= Tier
+        if(this.rowTier =='T'){
+          this.$emit('row-tier','Total')
+        }
+        else if(this.rowTier == '-'){
+          this.$emit('row-tier','null')
+        }
+        else{
+          this.$emit('row-tier',this.rowTier)
+        }
+    
+    },
+
+
     onChangeLoadTable() {
       this.loadparentrow();
-
       let rows_tier_H = { Tier: "H" };
-
       let rows_tier_M = { Tier: "M" };
-
       let rows_tier_L = { Tier: "L" };
-
       let prop_pass = { expand: true };
-
       this.loadInnerRow(rows_tier_H, prop_pass);
-
       this.loadInnerRow(rows_tier_M, prop_pass);
-
       this.loadInnerRow(rows_tier_L, prop_pass);
     },
 
     loadInnerRow(rows, prop) {
   
-      let path = "http://127.0.0.1:5000/table/decile/" + rows.Tier;
+      let path = "http://127.0.0.1:5000/table/decile/" + (rows.Tier).charAt(0);
       // console.log(path)
       fetch(path, {
         method: "POST",
@@ -627,7 +645,7 @@ export default {
         .then((data) => {
           console.log(data);
           // Insertion and deletion of rows
-          if (rows.Tier == "H") {
+          if (rows.Tier.charAt(0) == "H") {
             if (prop.expand) {
               this.rows[0].sub = data.output[0];
               this.rows[0].sub2 = data.output[1];
@@ -637,7 +655,7 @@ export default {
               delete this.rows[0].sub2;
               delete this.rows[0].sub3;
             }
-          } else if (rows.Tier == "M") {
+          } else if (rows.Tier.charAt(0) == "M") {
             if (prop.expand) {
               this.rows[1].sub = data.output[0];
               this.rows[1].sub2 = data.output[1];
@@ -647,7 +665,7 @@ export default {
               delete this.rows[1].sub2;
               delete this.rows[1].sub3;
             }
-          } else if (rows.Tier == "L") {
+          } else if (rows.Tier.charAt(0) == "L") {
             if (prop.expand) {
               this.rows[2].sub = data.output[0];
               this.rows[2].sub2 = data.output[1];
@@ -824,7 +842,10 @@ h1 {
 }
 .styled-td-yellow {
   background-color: #fff2cc;
+  cursor: pointer;
 }
+
+
 .styled-td-grey {
   background-color: #ededed;
 }

@@ -22,7 +22,7 @@
                                 'Non 340B'
                             ],
                     datasets: [{
-                        label: 'Total # account ',
+                        label: 'Total # orgs ',
                         data: [
                                 {Accounts:{value:3},Potential:{value:600},Percent:{value:30}}, 
                                 {Accounts:{value:5},Potential:{value:100},Percent:{value:50}}
@@ -95,7 +95,7 @@ const model=ref('Potential')
 
 export default{
 
-    props:['customFilter','stateFilter','terrFilter','isStateSelected'],
+    props:['customFilter','stateFilter','terrFilter','isStateSelected','tierFilter'],
 
     components:{
     //   ChartTable2
@@ -158,7 +158,7 @@ export default{
       fetch(path,{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected})
+          body:JSON.stringify({state:this.stateFilter,terr:this.terrFilter,isstateselected:this.isStateSelected,tier:this.tierFilter})
       })    
       .then((response)=>{
           //Handling errors if the server is not generating the output properly
@@ -207,6 +207,12 @@ export default{
 
       terrFilter(newValue,oldValue){
           if(!this.isStateSelected && JSON.stringify(newValue)!== JSON.stringify(oldValue)){
+               this.customRender();
+          }
+      },
+
+       tierFilter(newValue,oldValue){
+          if(newValue!=oldValue){
                this.customRender();
           }
       },

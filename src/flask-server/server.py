@@ -33,16 +33,8 @@ conn = psycopg2.connect(
 )
 
 
-# CORS(app,resources={r""})
-
-
-
-
-
 def check_state_territory(newState, newTerr, checkStateSelected):
-
     # checking for state and terriroty filter and updating params based on it
-
     orgStateName = ""
     orgTerritoryName = ""
 
@@ -59,12 +51,29 @@ def check_state_territory(newState, newTerr, checkStateSelected):
 
     return (orgStateName, orgTerritoryName)
 
+def check_tier(newTier):
+    orgTierName= ""
+
+    if(newTier == 'H' or newTier== 'M' or newTier=='L'):
+        orgTierName = f"org_tier = '{newTier}'"
+    elif(newTier == 'null'):
+        orgTierName = 'org_tier is NULL'
+    elif('D' in newTier):
+        temp = newTier.split('D')
+        orgTierName= f"org_decile = {temp[1]}"
+    else:
+        orgTierName=True
+    
+    return orgTierName
+
+
 
 @app.route('/map', methods=['GET', 'POST'])
 def map():
     cur = conn.cursor()
     newState = ""
     newTerr = ""
+    newTier=""
     checkStateSelected = True
     post_data = request.get_json()
 
@@ -72,30 +81,28 @@ def map():
     # Removing [] from the items
 
     newState = str(post_data.get('state'))[1:-1]
-
     newTerr = str(post_data.get('terr'))[1:-1]
-
     checkStateSelected = bool(post_data.get('isstateselected'))
+    newTier=str(post_data.get('tier'))
 
-    print('new data map', newState, newTerr, checkStateSelected)
+    # print('new data map', newState, newTerr, checkStateSelected)
 
     # Changing param best on the state and Territory filter
 
-    orgStateName, orgTerritoryName = check_state_territory(
-        newState, newTerr, checkStateSelected)
+    orgStateName, orgTerritoryName = check_state_territory(newState, newTerr, checkStateSelected)
+    orgTierName=check_tier(newTier)
+    
+    print('new map data', orgStateName, orgTerritoryName, orgTierName)
+
+
 
     create_script = f"""select org_geo_coord_x ,org_geo_coord_y, org_market_sales_ind13
-
                         from test.test_table9
-
-                        where {orgStateName} and {orgTerritoryName} and org_tier in ('H','M','L')
-                        
+                        where {orgStateName} and {orgTerritoryName} and {orgTierName}                       
                         order by org_market_sales_ind13 desc"""
 
     cur.execute(create_script)
-
-    res = cur.fetchall()
-   
+    res = cur.fetchall()   
     print("here is map data")
     # print(res)
     # print((name))
@@ -112,36 +119,6 @@ def get_data_states():
 
         # Assuming 'public.map' is your table name
         query = "SELECT DISTINCT org_state FROM test.test_table7"
-
-        cursor.execute(query)
-        data = cursor.fetchall()
-        column_names = [desc[0] for desc in cursor.description]
-        result = []
-        for row in data:
-            result.append(dict(zip(column_names, row)))
-        cursor.close()
-        return jsonify(result)  # Return the result as JSON
-    except Exception as e:
-        conn.rollback()  # Rollback the transaction in case of an exception
-        return jsonify({'error': str(e)})
-
-
-@app.route('/<tier>', methods=['GET'])
-def get_data(tier):
-
-    try:
-
-        cursor = conn.cursor()
-
-        # Assuming 'public.map' is your table name
-        if tier == "all":
-            query = "SELECT DISTINCT org_geo_coord_x,org_geo_coord_y FROM test.test_table7"
-        elif tier == "high":
-            query = "SELECT DISTINCT org_geo_coord_x,org_geo_coord_y FROM test.test_table7 WHERE org_tier = 'H'"
-        elif tier == "medium":
-            query = "SELECT DISTINCT org_geo_coord_x,org_geo_coord_y FROM test.test_table7 WHERE org_tier = 'M'"
-        elif tier == "low":
-            query = "SELECT DISTINCT org_geo_coord_x,org_geo_coord_y FROM test.test_table7 WHERE org_tier = 'L'"
 
         cursor.execute(query)
         data = cursor.fetchall()
@@ -277,12 +254,13 @@ def Tier(s):
     return ({"output":res})
 
 
-@app.route('/Chart/<s>',methods=['GET','POST'])
+@app.route('/Chart1/<s>',methods=['GET','POST'])
 def Chartt(s):
     # return (s)
     newState=""
     newTerr=""
     checkStateSelected= True 
+    newTier=""
     cur=conn.cursor()
 
     post_data=request.get_json()    
@@ -290,11 +268,15 @@ def Chartt(s):
     newState=str(post_data.get('state'))[1:-1]
     newTerr=str(post_data.get('terr'))[1:-1]
     checkStateSelected=bool(post_data.get('isstateselected'))
+    newTier=str(post_data.get('tier'))
 
    
-    print('new data chart2',newState,newTerr,checkStateSelected)    
+    # print('chart1',newState,newTerr,checkStateSelected,newTier)    
      #Changing param best on the state and Territory filter 
-    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)  
+    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
+    orgTierName=check_tier(newTier)
+
+    print("new chart Tier name",orgTierName)  
 
     if(s =='Potential'):
         create_script =f"""select d.*,coalesce(c.countt,0) as accounts,coalesce(c.total,0) as total_accounts,coalesce(c.per,0) as per
@@ -303,11 +285,11 @@ def Chartt(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_academic_vs_community",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName}) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName}) as total
                                     from
                                     ( 
                                         select "org_id" as org,"org_academic_vs_community","org_market_sales_ind13"
-                                        from test."test_table9" where {orgStateName} and {orgTerritoryName}
+                                        from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName}
                                     )a
                                     group by a."org_academic_vs_community"
                                 )b
@@ -324,11 +306,11 @@ def Chartt(s):
                                         select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                         from
                                         (	select a."org_academic_vs_community",count(distinct(a.org)) as countt,
-                                            (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName} and "org_market_sales_ind13">100) as total
+                                            (select count(distinct ( "org_id")) from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100) as total
                                             from
                                             ( 
                                                 select "org_id" as org,"org_academic_vs_community","org_market_sales_ind13"
-                                                from test."test_table9" where {orgStateName} and {orgTerritoryName} and "org_market_sales_ind13">100
+                                                from test."test_table9" where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100
                                             )a
                                             group by a."org_academic_vs_community"
                                         )b
@@ -351,6 +333,7 @@ def Chart2(s):
 
     newState=""
     newTerr=""
+    newTier=""
     checkStateSelected= True 
     cur=conn.cursor()
 
@@ -359,8 +342,12 @@ def Chart2(s):
     newState=str(post_data.get('state'))[1:-1]
     newTerr=str(post_data.get('terr'))[1:-1]
     checkStateSelected=bool(post_data.get('isstateselected'))
+    newTier=str(post_data.get('tier'))
 
-    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)  
+    orgStateName,orgTerritoryName=check_state_territory(newState,newTerr,checkStateSelected)
+    orgTierName=check_tier(newTier)
+
+    print("new chart2 Tier name",orgTierName)   
 
     if(s =='Potential'):
          create_script=f"""select d.*,coalesce(c.countt,0) as accounts,coalesce(c.total,0) as total_accounts,coalesce(c.per,0) as per
@@ -369,11 +356,11 @@ def Chart2(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_flag_for_340b",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName}) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName}) as total
                                     from
                                     ( 
                                         select  "org_id" as org,"org_flag_for_340b","org_product_sales"
-                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} 
+                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName}
                                     )a
                                     group by a."org_flag_for_340b"
                                 )b
@@ -390,11 +377,11 @@ def Chart2(s):
                                 select b.*,cast((cast(b.countt as decimal)/cast(b.total as decimal))*100 as integer) as per
                                 from
                                 (	select a."org_flag_for_340b",count(distinct(a.org)) as countt,
-                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName} and "org_market_sales_ind13">100) as total
+                                    (select count(distinct ( "org_id")) from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100) as total
                                     from
                                     ( 
                                         select  "org_id" as org,"org_flag_for_340b","org_product_sales"
-                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} and "org_market_sales_ind13">100
+                                        from test."test_table9"  where {orgStateName} and {orgTerritoryName} and {orgTierName} and "org_market_sales_ind13">100
                                     )a
                                     group by a."org_flag_for_340b"
                                 )b
